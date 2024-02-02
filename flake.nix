@@ -36,11 +36,6 @@
             emulator
             platform-tools
             platforms-android-34
-
-            # Other useful packages for a development environment.
-            # ndk-26-1-10909125
-            # skiaparser-3
-            # sources-android-34
           ]);
         } // lib.optionalAttrs (system == "x86_64-linux") {
           android-studio = pkgs.androidStudioPackages.stable;

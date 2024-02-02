@@ -12,7 +12,6 @@ devshell.mkShell {
     Entered the Android app development environment.
   '';
   
-  # Existing environment variables
   env = [
     {
       name = "ANDROID_HOME";
@@ -26,7 +25,7 @@ devshell.mkShell {
       name = "JAVA_HOME";
       value = jdk17.home;
     }
-    # Add GRADLE_OPTS to the environment variables
+    # override maven aapt2 - it doesn't with nixos
     {
       name = "GRADLE_OPTS";
       value = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidSdk}/share/android-sdk/build-tools/34.0.0/aapt2";
