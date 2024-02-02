@@ -15,5 +15,5 @@ adb tcpip 5555
 ```
 on wsl:
 ```bash
-adb conenct <device-ip>:5555
+adb connect <device-ip>:5555
 ```
