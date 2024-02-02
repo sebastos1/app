@@ -4,7 +4,6 @@
 git clone https://github.com/sebastos1/app
 cd app
 nix develop
-npm install react-native-cli
 # make sure android phone/vm connected
 npx react-native start
 ```

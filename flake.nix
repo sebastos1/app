@@ -47,6 +47,10 @@
         };
 
         devShell = import ./devshell.nix { inherit pkgs; };
+
+        shellHook = ''
+          npm install react-native
+        '';
       }
     );
 }
