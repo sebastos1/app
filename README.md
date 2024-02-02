@@ -5,7 +5,7 @@ git clone https://github.com/sebastos1/app
 cd app
 nix develop
 # make sure android phone/vm connected
-npm start
+npx react-native start
 ```
 
 # if wsl
