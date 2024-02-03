@@ -1,109 +1,103 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
   Button,
-  ViewStyle,
-  ScrollView,
   StyleSheet,
-  BackHandler,
+  ScrollView,
   SafeAreaView,
   useColorScheme,
-  TouchableOpacity
+  TouchableOpacity,
+  BackHandler,
 } from 'react-native';
-
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import firestore from '@react-native-firebase/firestore';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 type Class = {
-  classID: number;
+  classID: string;
   className: string;
 };
 
 type Student = {
-  studentID: number;
+  studentID: string;
   fName: string;
   lName: string;
   dob: string;
 };
 
 type Score = {
-  scoreID: number;
-  studentID: number;
-  classID: number;
+  scoreID: string;
+  studentID: string;
+  classID: string;
   score: number;
 };
 
-const classes: Class[] = [
-  { classID: 1, className: 'Math' },
-  { classID: 2, className: 'Science' },
-  { classID: 3, className: 'History' },
-];
-
-const students: Student[] = [
-  { studentID: 1, fName: 'John', lName: 'Doe', dob: '2000-01-01' },
-  { studentID: 2, fName: 'Jane', lName: 'Smith', dob: '2001-02-02' },
-  { studentID: 3, fName: 'Alice', lName: 'Johnson', dob: '2002-03-03' },
-];
-
-const scores: Score[] = [
-  { scoreID: 1, studentID: 1, classID: 1, score: 88 },
-  { scoreID: 2, studentID: 1, classID: 2, score: 92 },
-  { scoreID: 3, studentID: 1, classID: 3, score: 85 },
-  { scoreID: 4, studentID: 2, classID: 1, score: 90 },
-  { scoreID: 5, studentID: 2, classID: 2, score: 93 },
-  { scoreID: 6, studentID: 2, classID: 3, score: 88 },
-  { scoreID: 7, studentID: 3, classID: 1, score: 95 },
-  { scoreID: 8, studentID: 3, classID: 3, score: 90 },
-];
-
+const calculateGrade = (score: number): string => {
+  if (score >= 90) return 'A';
+  if (score >= 80) return 'B';
+  if (score >= 70) return 'C';
+  if (score >= 60) return 'D';
+  return 'F';
+};
 
 const App = (): React.JSX.Element => {
-  const [currentView, setCurrentView] = React.useState<'students' | 'studentCourses' | 'courseStudents'>('students');
-  const [selectedStudentId, setSelectedStudentId] = React.useState<number | null>(null);
-  const [selectedClassId, setSelectedClassId] = React.useState<number | null>(null);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [scores, setScores] = useState<Score[]>([]);
+  const [currentView, setCurrentView] = useState<'students' | 'studentCourses' | 'courseStudents'>('students');
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
   const isDarkMode = useColorScheme() === 'dark';
-  const backgroundStyle: ViewStyle = {
+  const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
     flex: 1,
   };
 
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const querySnapshot = await firestore().collection('Classes').get();
+      const fetchedClasses = querySnapshot.docs.map(doc => ({ classID: doc.id, ...doc.data() })) as Class[];
+      setClasses(fetchedClasses);
+    };
+
+    const fetchStudents = async () => {
+      const querySnapshot = await firestore().collection('Students').get();
+      const fetchedStudents = querySnapshot.docs.map(doc => ({ studentID: doc.id, ...doc.data() })) as Student[];
+      setStudents(fetchedStudents);
+    };
+
+    const fetchScores = async () => {
+      const querySnapshot = await firestore().collection('Scores').get();
+      const fetchedScores = querySnapshot.docs.map(doc => ({ scoreID: doc.id, ...doc.data() })) as Score[];
+      setScores(fetchedScores);
+    };
+
+    fetchClasses();
+    fetchStudents();
+    fetchScores();
+  }, []);
+
   const handleBackPress = () => {
     if (currentView === 'studentCourses' || currentView === 'courseStudents') {
-      handleBack();
+      setCurrentView('students');
+      setSelectedStudentId(null);
+      setSelectedClassId(null);
       return true;
     }
-
     return false;
   };
 
-  const handleBack = () => {
-    if (currentView === 'courseStudents') {
-      setCurrentView('studentCourses');
-    } else if (currentView === 'studentCourses') {
-      setCurrentView('students');
-      setSelectedStudentId(null);
-    }
-  };
-
-  React.useEffect(() => {
+  useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
-  }, [currentView, handleBackPress]);
+  }, [currentView]);
 
   const renderStudentsList = () => (
     <ScrollView contentContainerStyle={styles.table}>
-      {<Text style={styles.tableHeader}>Students</Text>}
-      <View style={styles.tableRow}>
-        <Text style={styles.tableHeader}>Student ID</Text>
-        <Text style={styles.tableHeader}>First Name</Text>
-        <Text style={styles.tableHeader}>Last Name</Text>
-        <Text style={styles.tableHeader}>DOB</Text>
-      </View>
-      {/* rows */}
+      <Text style={styles.tableHeader}>Students</Text>
       {students.map((student, index) => (
         <TouchableOpacity key={index} style={styles.tableRow} onPress={() => { setSelectedStudentId(student.studentID); setCurrentView('studentCourses'); }}>
           <Text style={styles.tableCell}>{student.studentID}</Text>
@@ -120,11 +114,12 @@ const App = (): React.JSX.Element => {
     return (
       <ScrollView contentContainerStyle={styles.table}>
         {studentScores.map((score, index) => {
-          const className = classes.find(cls => cls.classID === score.classID)?.className;
+          const className = classes.find(cls => cls.classID === score.classID.toString())?.className;
+          const grade = calculateGrade(score.score);
           return (
             <TouchableOpacity key={index} style={styles.tableRow} onPress={() => { setSelectedClassId(score.classID); setCurrentView('courseStudents'); }}>
               <Text style={styles.tableCell}>{className}</Text>
-              <Text style={styles.tableCell}>{score.score}</Text>
+              <Text style={styles.tableCell}>{`${score.score} (${grade})`}</Text>
             </TouchableOpacity>
           );
         })}
@@ -138,10 +133,11 @@ const App = (): React.JSX.Element => {
       <ScrollView contentContainerStyle={styles.table}>
         {classScores.map((score, index) => {
           const student = students.find(student => student.studentID === score.studentID);
+          const grade = calculateGrade(score.score);
           return (
             <View key={index} style={styles.tableRow}>
               <Text style={styles.tableCell}>{student?.fName} {student?.lName}</Text>
-              <Text style={styles.tableCell}>{score.score}</Text>
+              <Text style={styles.tableCell}>{`${score.score} (${grade})`}</Text>
             </View>
           );
         })}
@@ -152,7 +148,7 @@ const App = (): React.JSX.Element => {
   return (
     <SafeAreaView style={backgroundStyle}>
       {currentView !== 'students' && (
-        <Button title="Back" onPress={handleBack} color={isDarkMode ? '#fff' : '#000'} />
+        <Button title="Back" onPress={() => setCurrentView('students')} color={isDarkMode ? '#fff' : '#000'} />
       )}
       {currentView === 'students' && renderStudentsList()}
       {currentView === 'studentCourses' && renderStudentCourses()}

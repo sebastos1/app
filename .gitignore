@@ -167,3 +167,4 @@ yarn-error.log*
 *.iml
 android/app/build
 ios/build
+android/app/google-services.json

@@ -41,11 +41,13 @@
           android-studio = pkgs.androidStudioPackages.stable;
         };
 
-        devShell = import ./devshell.nix { inherit pkgs; };
-
         shellHook = ''
+          echo "Installing react-native..."
           npm install react-native
         '';
+
+        devShell = import ./devshell.nix { inherit pkgs; };
+
       }
     );
 }
