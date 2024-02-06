@@ -5,10 +5,10 @@ import {
   Button,
   StyleSheet,
   ScrollView,
+  BackHandler,
   SafeAreaView,
   useColorScheme,
   TouchableOpacity,
-  BackHandler,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
@@ -37,6 +37,7 @@ const calculateGrade = (score: number): string => {
   if (score >= 80) return 'B';
   if (score >= 70) return 'C';
   if (score >= 60) return 'D';
+  if (score >= 50) return 'E';
   return 'F';
 };
 
@@ -63,7 +64,8 @@ const App = (): React.JSX.Element => {
 
     const fetchStudents = async () => {
       const querySnapshot = await firestore().collection('Students').get();
-      const fetchedStudents = querySnapshot.docs.map(doc => ({ studentID: doc.id, ...doc.data() })) as Student[];
+      let fetchedStudents = querySnapshot.docs.map(doc => ({ studentID: doc.id, ...doc.data() })) as Student[];
+      fetchedStudents = fetchedStudents.sort((a, b) => parseInt(a.studentID) - parseInt(b.studentID));
       setStudents(fetchedStudents);
     };
 
@@ -98,6 +100,12 @@ const App = (): React.JSX.Element => {
   const renderStudentsList = () => (
     <ScrollView contentContainerStyle={styles.table}>
       <Text style={styles.tableHeader}>Students</Text>
+      <View style={styles.tableRowHeader}>
+        <Text style={styles.tableCellHeader}>ID</Text>
+        <Text style={styles.tableCellHeader}>First Name</Text>
+        <Text style={styles.tableCellHeader}>Last Name</Text>
+        <Text style={styles.tableCellHeader}>DOB</Text>
+      </View>
       {students.map((student, index) => (
         <TouchableOpacity key={index} style={styles.tableRow} onPress={() => { setSelectedStudentId(student.studentID); setCurrentView('studentCourses'); }}>
           <Text style={styles.tableCell}>{student.studentID}</Text>
@@ -111,10 +119,18 @@ const App = (): React.JSX.Element => {
 
   const renderStudentCourses = () => {
     const studentScores = scores.filter(score => score.studentID === selectedStudentId);
+    const student = students.find(student => student.studentID === selectedStudentId);
+    const studentName = student ? `${student.fName} ${student.lName}` : 'Student';
+
     return (
       <ScrollView contentContainerStyle={styles.table}>
+        <Text style={styles.tableHeader}>Classes for {studentName}</Text>
+        <View style={styles.tableRowHeader}>
+          <Text style={styles.tableCellHeader}>Class Name</Text>
+          <Text style={styles.tableCellHeader}>Grade</Text>
+        </View>
         {studentScores.map((score, index) => {
-          const className = classes.find(cls => cls.classID === score.classID.toString())?.className;
+          const className = classes.find(cls => cls.classID === score.classID)?.className;
           const grade = calculateGrade(score.score);
           return (
             <TouchableOpacity key={index} style={styles.tableRow} onPress={() => { setSelectedClassId(score.classID); setCurrentView('courseStudents'); }}>
@@ -129,8 +145,16 @@ const App = (): React.JSX.Element => {
 
   const renderCourseStudents = () => {
     const classScores = scores.filter(score => score.classID === selectedClassId);
+    const classInfo = classes.find(cls => cls.classID === selectedClassId);
+    const className = classInfo ? classInfo.className : 'Class';
+
     return (
       <ScrollView contentContainerStyle={styles.table}>
+        <Text style={styles.tableHeader}>Students in {className}</Text>
+        <View style={styles.tableRowHeader}>
+          <Text style={styles.tableCellHeader}>Student Name</Text>
+          <Text style={styles.tableCellHeader}>Grade</Text>
+        </View>
         {classScores.map((score, index) => {
           const student = students.find(student => student.studentID === score.studentID);
           const grade = calculateGrade(score.score);
@@ -177,6 +201,18 @@ const styles = StyleSheet.create({
   tableCell: {
     flex: 1,
     textAlign: 'center',
+  },
+  tableRowHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f2f2f2',
+    borderBottomWidth: 2,
+    borderBottomColor: '#f2f2f2',
+  },
+  tableCellHeader: {
+    flex: 1,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    padding: 10,
   },
 });
 
