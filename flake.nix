@@ -43,7 +43,7 @@
 
         shellHook = ''
           echo "Installing react-native..."
-          npm install react-native
+          npm install
         '';
 
         devShell = import ./devshell.nix { inherit pkgs; };

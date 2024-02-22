@@ -4,7 +4,8 @@
 git clone https://github.com/sebastos1/app
 cd app
 nix develop
-# make sure android phone/vm connected
+# adb devices (make sure android phone/vm connected)
+# npm install (if flake didnt want to)
 npm start
 ```
 
