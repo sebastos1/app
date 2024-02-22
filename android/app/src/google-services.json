@@ -1,0 +1,29 @@
+{
+    "project_info": {
+      "project_number": "1086138518074",
+      "project_id": "sadapp-f1967",
+      "storage_bucket": "sadapp-f1967.appspot.com"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:1086138518074:android:488c705a59df628977c303",
+          "android_client_info": {
+            "package_name": "com.app"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyCtDNB3H5pfGA5UcRY_hhfArujtFPgm61A"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+}
